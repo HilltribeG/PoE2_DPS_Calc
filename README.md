@@ -1,5 +1,5 @@
 When Quality isn't detected
-Note how it still provides the potential Rune DPS even if there are already Runes socketed
+Note how the potential Rune DPS shows even if there are already Runes socketed
 ![image](https://github.com/user-attachments/assets/8c2b1ebf-eec2-4cba-b756-55e963eaded4)
 
 Another Example with no Quality and nor Runes
