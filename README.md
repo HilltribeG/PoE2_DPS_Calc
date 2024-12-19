@@ -1,3 +1,5 @@
+ATM it doesn't do Chaos DPS for the Chaos DPS bow.
+
 When Quality isn't detected
 Note how the potential Rune DPS shows even if there are already Runes socketed
 ![image](https://github.com/user-attachments/assets/8c2b1ebf-eec2-4cba-b756-55e963eaded4)
