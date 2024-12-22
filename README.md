@@ -1,4 +1,5 @@
 ATM it doesn't do Chaos DPS for the Chaos DPS bow.
+Also no Crossbows because of reload.
 
 When Quality isn't detected
 Note how the potential Rune DPS shows even if there are already Runes socketed
