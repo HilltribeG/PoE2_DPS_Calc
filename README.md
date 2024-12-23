@@ -9,4 +9,5 @@ Another Example with no Quality and nor Runes
 ![image](https://github.com/user-attachments/assets/4b169804-e32f-4dfa-bbac-ceddaf3972e8)
 
 Quality at 20% and Runes socketed already
-![image](https://github.com/user-attachments/assets/4d0c41bd-91b8-423e-a95c-471a8c7acd4c)
+![image](https://github.com/user-attachments/assets/767ac4f9-4bbb-4f08-b334-00db180501dc)
+
