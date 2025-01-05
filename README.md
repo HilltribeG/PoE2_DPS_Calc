@@ -1,3 +1,6 @@
+Run the AHK v1 script and press Ctrl+c on an item to briefly display a tooltip with the info.
+Works on both Chat links and items you own.
+
 ATM it doesn't do Chaos DPS for the Chaos DPS bow.
 Also no Crossbows because of reload.
 
