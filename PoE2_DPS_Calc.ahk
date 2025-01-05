@@ -89,7 +89,7 @@ ClipChanged(Type) {
         {
             quality_mod := match1
         }
-        else if RegExMatch(A_LoopField, "(\d+)% increased Physical Damage", match)
+        else if RegExMatch(A_LoopField, "(\d+)% increased \[?Physical\]? Damage", match)
         {
             increased_phys_mod += match1
         }
