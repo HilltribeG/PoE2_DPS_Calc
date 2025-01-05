@@ -28,6 +28,9 @@ ClipChanged(Type) {
     attacks_per_second := 0
     quality_mod := 0
     increased_phys_mod := 0
+    flat_phys_min := 0
+    flat_phys_max := 0
+    rune_mod := 0
     
     ; Parse clipboard text
     Loop, Parse, clipboard, `n
@@ -81,6 +84,11 @@ ClipChanged(Type) {
                 cold_max := dmg2 ? dmg2 : dmg7
             }
         }
+        else if RegExMatch(A_LoopField, "Adds (\d+) to (\d+) (?:\[Physical\|Physical\]|Physical) Damage", match)
+        {
+            flat_phys_min := match1
+            flat_phys_max := match2
+        }
         else if RegExMatch(A_LoopField, "Attacks per Second: ([\d.]+)", match)
         {
             attacks_per_second := match1
@@ -89,24 +97,27 @@ ClipChanged(Type) {
         {
             quality_mod := match1
         }
-        else if RegExMatch(A_LoopField, "(\d+)% increased \[?Physical\]? Damage", match)
+        else if RegExMatch(A_LoopField, "(\d+)% increased (?:\[Physical\]|Physical) Damage(?: \(rune\))?", match)
         {
-            increased_phys_mod += match1
+            if (InStr(A_LoopField, "(rune)"))
+                rune_mod := match1
+            else
+                increased_phys_mod += match1
         }
     }
     
-    ; Calculate true base physical damage by removing ALL modifiers
-    total_modifier := (1 + (quality_mod/100) + (increased_phys_mod/100))
-    base_physical_min := physical_min / total_modifier
-    base_physical_max := physical_max / total_modifier
-    base_avg_physical := (base_physical_min + base_physical_max) / 2
-    base_physical_dps := base_avg_physical * attacks_per_second
+    ; ---- Calculate Base Values (for reference) ----
+    ; Remove all modifiers to get base weapon damage
+    total_modifier := (1 + (quality_mod/100) + (increased_phys_mod/100) + (rune_mod/100))
+    scaled_physical_min := physical_min / total_modifier
+    scaled_physical_max := physical_max / total_modifier
+    base_physical_min := Round(scaled_physical_min - (flat_phys_min / total_modifier))
+    base_physical_max := Round(scaled_physical_max - (flat_phys_max / total_modifier))
     
-    ; Calculate current physical DPS with all current modifiers
+    ; ---- Calculate Current DPS Values ----
     avg_physical := (physical_min + physical_max) / 2
     physical_dps := avg_physical * attacks_per_second
     
-    ; Calculate elemental damages
     avg_lightning := (lightning_min + lightning_max) / 2
     avg_fire := (fire_min + fire_max) / 2
     avg_cold := (cold_min + cold_max) / 2
@@ -115,20 +126,34 @@ ClipChanged(Type) {
     elemental_dps := total_elemental_avg * attacks_per_second
     total_dps := physical_dps + elemental_dps
     
-    ; Calculate potential physical DPS at 20% quality (keeping other modifiers)
-    potential_physical_dps := base_avg_physical * (1 + 0.20 + (increased_phys_mod/100)) * attacks_per_second
+    ; ---- Calculate Quality Upgrade Potential ----
+    ; Remove quality modifier but keep others
+    no_quality_modifier := (1 + (increased_phys_mod/100) + (rune_mod/100))
+    current_no_quality_min := physical_min / (1 + (quality_mod/100))
+    current_no_quality_max := physical_max / (1 + (quality_mod/100))
+    
+    ; Calculate with 20% quality
+    potential_min := current_no_quality_min * (1 + 0.20)
+    potential_max := current_no_quality_max * (1 + 0.20)
+    potential_physical_dps := ((potential_min + potential_max) / 2) * attacks_per_second
     potential_total_dps := potential_physical_dps + elemental_dps
     
-    ; Calculate rune potential increases
-    phys_rune_increase := base_physical_dps * 0.20  ; 20% of base physical DPS
+    ; ---- Calculate Rune Potential Increases ----
+    ; For physical rune: Keep quality and flat, remove increased and rune mods
+    partial_modifier := (1 + (increased_phys_mod/100) + (rune_mod/100))
+    scaled_min := physical_min / partial_modifier
+    scaled_max := physical_max / partial_modifier
     
-    ; Lightning rune potential (1-20 damage)
+    ; Calculate DPS with just quality and flat mods
+    partial_avg_physical := (scaled_min + scaled_max) / 2
+    partial_physical_dps := partial_avg_physical * attacks_per_second
+    
+    ; Physical rune adds 20% to this value
+    phys_rune_increase := partial_physical_dps * 0.20
+    
+    ; Elemental rune calculations
     lightning_rune_dps := ((1 + 20) / 2) * attacks_per_second
-    
-    ; Fire rune potential (7-11 damage)
     fire_rune_dps := ((7 + 11) / 2) * attacks_per_second
-    
-    ; Cold rune potential (6-10 damage)
     cold_rune_dps := ((6 + 10) / 2) * attacks_per_second
     
     ; Format numbers to 1 decimal place
@@ -142,7 +167,8 @@ ClipChanged(Type) {
     fire_rune_dps := Round(fire_rune_dps, 1)
     cold_rune_dps := Round(cold_rune_dps, 1)
     
-    ; Debug information
+    ; ---- Build Output Message ----
+    msgText := "  Current Values:`n"
     msgText .= "  Physical DPS: " . physical_dps . "`n"
     msgText .= "  Elemental DPS: " . elemental_dps . "`n"
     msgText .= "_________________________________________________" . "`n"
@@ -151,7 +177,8 @@ ClipChanged(Type) {
     if (quality_mod < 20)
     {
         msgText .= "  Quality Upgrade Potential:`n"
-        msgText .= "  Physical DPS at 20% Quality: " . potential_physical_dps . "`n"
+        msgText .= "  No Quality Physical: " . Round(((current_no_quality_min + current_no_quality_max)/2) * attacks_per_second, 1) . "`n"
+        msgText .= "  At 20% Quality: " . potential_physical_dps . "`n"
         msgText .= "_________________________________________________" . "`n"
         msgText .= "  Total DPS at 20% Quality: " . potential_total_dps . "`n`n"
     }
@@ -160,11 +187,10 @@ ClipChanged(Type) {
     msgText .= "  Physical Rune (+20%): +" . phys_rune_increase . "`n"
     msgText .= "  Lightning Rune (1-20): +" . lightning_rune_dps . "`n"
     msgText .= "  Fire Rune (7-11): +" . fire_rune_dps . "`n"
-    msgText .= "  Cold Rune (6-10): +" . cold_rune_dps . "`n"
-    msgText .= "  `n"
+    msgText .= "  Cold Rune (6-10): +" . cold_rune_dps . "`n`n"
     
     ToolTip % msgText
-    SetTimer RemoveToolTip, -6000  ; Negative value means run only once
+    SetTimer RemoveToolTip, -6000
     return
 }
 
