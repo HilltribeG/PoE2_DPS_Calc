@@ -177,7 +177,6 @@ ClipChanged(Type) {
     if (quality_mod < 20)
     {
         msgText .= "  Quality Upgrade Potential:`n"
-        msgText .= "  No Quality Physical: " . Round(((current_no_quality_min + current_no_quality_max)/2) * attacks_per_second, 1) . "`n"
         msgText .= "  At 20% Quality: " . potential_physical_dps . "`n"
         msgText .= "_________________________________________________" . "`n"
         msgText .= "  Total DPS at 20% Quality: " . potential_total_dps . "`n`n"
