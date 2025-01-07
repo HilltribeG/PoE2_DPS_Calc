@@ -168,7 +168,7 @@ ClipChanged(Type) {
     cold_rune_dps := Round(cold_rune_dps, 1)
     
     ; ---- Build Output Message ----
-    msgText := "  Current Values:`n"
+    msgText := "  [Current Values]`n"
     msgText .= "  Physical DPS: " . physical_dps . "`n"
     msgText .= "  Elemental DPS: " . elemental_dps . "`n"
     msgText .= "_________________________________________________" . "`n"
@@ -176,13 +176,13 @@ ClipChanged(Type) {
     
     if (quality_mod < 20)
     {
-        msgText .= "  Quality Upgrade Potential:`n"
-        msgText .= "  At 20% Quality: " . potential_physical_dps . "`n"
+        msgText .= "  [Quality Upgrade Potential]`n"
+        msgText .= "  Physical DPS at 20% Quality: " . potential_physical_dps . "`n"
         msgText .= "_________________________________________________" . "`n"
         msgText .= "  Total DPS at 20% Quality: " . potential_total_dps . "`n`n"
     }
     
-    msgText .= "  Potential Rune DPS Increases:`n"
+    msgText .= "  [Potential Rune DPS Increases]`n"
     msgText .= "  Physical Rune (+20%): +" . phys_rune_increase . "`n"
     msgText .= "  Lightning Rune (1-20): +" . lightning_rune_dps . "`n"
     msgText .= "  Fire Rune (7-11): +" . fire_rune_dps . "`n"
