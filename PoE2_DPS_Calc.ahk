@@ -11,7 +11,7 @@ ClipChanged(Type) {
         return
     
     ; Exit if not a weapon stat block
-    if !RegExMatch(Clipboard, "m)^Attacks per Second:.+\R-{8,}")
+    if !RegExMatch(Clipboard, "m)Attacks per Second:[\s\S]*-{8,}")
         return
         
     clipboard := RegExReplace(Clipboard, "\r\n", "`n")  ; Normalize line endings
@@ -40,32 +40,36 @@ ClipChanged(Type) {
             physical_min := match1
             physical_max := match2
         }
-        else if RegExMatch(A_LoopField, "(?:\[ElementalDamage\|Elemental\] |Elemental )Damage:", match)
-        {
-            ; Split by comma and process each element
-            elements := StrSplit(A_LoopField, ",")
-            for index, element in elements
-            {
-                if RegExMatch(element, "(\d+)-(\d+)", dmg)
-                {
-                    if (index = 1)
-                    {
-                        cold_min := dmg1
-                        cold_max := dmg2
-                    }
-                    else if (index = 2)
-                    {
-                        lightning_min := dmg1
-                        lightning_max := dmg2
-                    }
-                    else if (index = 3)
-                    {
-                        fire_min := dmg1
-                        fire_max := dmg2
-                    }
-                }
-            }
-        }
+		else if RegExMatch(A_LoopField, "(?:\[ElementalDamage\|Elemental\] |Elemental )Damage:", match)
+		{
+			; Split by comma and process each element
+			elements := StrSplit(A_LoopField, ",")
+			for index, element in elements
+			{
+				; New Regex: Capture damage values AND the element name in parentheses
+				if RegExMatch(element, "(\d+)-(\d+) \((fire|lightning|cold)\)", dmg)
+				{
+					; Correct v1 syntax for converting a string to lowercase
+					StringLower, elementType, dmg3 
+					
+					if (elementType = "fire")
+					{
+						fire_min := dmg1
+						fire_max := dmg2
+					}
+					else if (elementType = "lightning")
+					{
+						lightning_min := dmg1
+						lightning_max := dmg2
+					}
+					else if (elementType = "cold")
+					{
+						cold_min := dmg1
+						cold_max := dmg2
+					}
+				}
+			}
+		}
         else if RegExMatch(A_LoopField, "(?:Adds (\d+) to (\d+) (?:\[(Fire|Lightning|Cold)\|.*?\]|(Fire|Lightning|Cold)) Damage|(?:(Lightning|Fire|Cold)) Damage: (\d+)-(\d+))", dmg)
         {
             if (dmg3 = "Fire" || dmg4 = "Fire" || dmg5 = "Fire")
@@ -111,8 +115,8 @@ ClipChanged(Type) {
     total_modifier := (1 + (quality_mod/100) + (increased_phys_mod/100) + (rune_mod/100))
     scaled_physical_min := physical_min / total_modifier
     scaled_physical_max := physical_max / total_modifier
-    base_physical_min := Round(scaled_physical_min - (flat_phys_min / total_modifier))
-    base_physical_max := Round(scaled_physical_max - (flat_phys_max / total_modifier))
+    base_physical_min := Round(scaled_physical_min - flat_phys_min)
+    base_physical_max := Round(scaled_physical_max - flat_phys_max)
     
     ; ---- Calculate Current DPS Values ----
     avg_physical := (physical_min + physical_max) / 2
@@ -168,25 +172,25 @@ ClipChanged(Type) {
     cold_rune_dps := Round(cold_rune_dps, 1)
     
     ; ---- Build Output Message ----
-    msgText := "  [Current Values]`n"
-    msgText .= "  Physical DPS: " . physical_dps . "`n"
-    msgText .= "  Elemental DPS: " . elemental_dps . "`n"
+    msgText := "  [ Current Values ]`n"
+    msgText .= "    Physical DPS: " . physical_dps . "`n"
+    msgText .= "    Elemental DPS: " . elemental_dps . "`n"
     msgText .= "_________________________________________________" . "`n"
-    msgText .= "  Total DPS: " . total_dps . "`n`n"
+    msgText .= "    Total DPS: " . total_dps . "`n`n"
     
     if (quality_mod < 20)
     {
-        msgText .= "  [Quality Upgrade Potential]`n"
-        msgText .= "  Physical DPS at 20% Quality: " . potential_physical_dps . "`n"
+        msgText .= "  [ Quality Upgrade Potential ]`n"
+        msgText .= "    Physical DPS at 20% Quality: " . potential_physical_dps . "`n"
         msgText .= "_________________________________________________" . "`n"
-        msgText .= "  Total DPS at 20% Quality: " . potential_total_dps . "`n`n"
+        msgText .= "    Total DPS at 20% Quality: " . potential_total_dps . "`n`n"
     }
     
-    msgText .= "  [Potential Rune DPS Increases]`n"
-    msgText .= "  Physical Rune (+20%): +" . phys_rune_increase . "`n"
-    msgText .= "  Lightning Rune (1-20): +" . lightning_rune_dps . "`n"
-    msgText .= "  Fire Rune (7-11): +" . fire_rune_dps . "`n"
-    msgText .= "  Cold Rune (6-10): +" . cold_rune_dps . "`n`n"
+    msgText .= "  [ Potential Rune DPS Increases ]`n"
+    msgText .= "    Physical Rune (+20%): +" . phys_rune_increase . "`n"
+    msgText .= "    Lightning Rune (1-20): +" . lightning_rune_dps . "`n"
+    msgText .= "    Fire Rune (7-11): +" . fire_rune_dps . "`n"
+    msgText .= "    Cold Rune (6-10): +" . cold_rune_dps . "`n`n"
     
     ToolTip % msgText
     SetTimer RemoveToolTip, -6000
