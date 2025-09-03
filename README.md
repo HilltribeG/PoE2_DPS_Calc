@@ -2,7 +2,7 @@ Run the AHK v1 script and press Ctrl+C on an item to briefly display a tooltip w
 Works on both Chat links and items you own.
 
 ATM it doesn't do Chaos DPS for the Chaos DPS bow.
-Also no Crossbows because of reload.
+Crossbows may need some DPS fix as reload isn't factored.
 
 When Quality isn't detected
 Note how the potential Rune DPS shows even if there are already Runes socketed
